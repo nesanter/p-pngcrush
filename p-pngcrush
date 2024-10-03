@@ -1,0 +1,107 @@
+#!/bin/bash
+#
+# Copyright (c) 2024 Noah Santer <n.ed.santer@gmail.com>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the “Software”), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+function usage () {
+    echo "Syntax: $0 [-h] [-q] INPUT [OUTPUT]" >&2
+}
+
+#
+# parse arguments
+#
+
+input=
+output=
+quiet=
+
+while [ $# -gt 0 ] ; do
+    if [ "$1" == "-q" ] ; then
+        quiet=1
+    elif [ "$1" == "-h" ] ; then
+        usage
+        exit 1
+    elif [ -z "$input" ] ; then
+        input="$1"
+    elif [ -z "$output" ] ; then
+        output="$1"
+    else
+        usage
+        exit 1
+    fi
+
+    shift 1
+done
+
+if [ -z "$input" ] ; then
+    usage
+    exit 1
+fi
+
+if [ -z "$output" ] ; then
+    # infer output from input
+    output="${input%.png}-crushed.png"
+fi
+
+#
+# make a directory to store the outputs
+#
+
+dir="$(mktemp -d)"
+
+#
+# run pngcrush methods
+#
+# note: at the moment, pngcrush doesn't seem to exit non-zero in the event
+#       of errors, including if the input is missing.
+#
+#       if it did that, one could add a || touch $n-failed or similar and
+#       check for those files existing after the wait, but for now that's
+#       not an option
+#
+
+[ -z "$quiet" ] && echo "Parallel pngcrushing $input..." >&2
+
+for n in {1..177} ; do
+    pngcrush -reduce -nolimits -m "$n" $input "$dir/$n.png" 2>/dev/null >/dev/null &
+done
+
+wait
+
+#
+# sort by size to find best
+#
+
+best="$(ls -S $dir | head -n 1)"
+
+if [ -z "$best" ] ; then
+    echo "ERROR: no best found" >&2
+    rm -r "$dir"
+    exit 1
+fi
+
+[ -z "$quiet" ] && echo "Best: $best" >&2
+
+#
+# move output into place and clean up
+#
+
+mv "$dir/$best" "$output"
+rm -r "$dir"
