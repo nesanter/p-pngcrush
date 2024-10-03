@@ -89,7 +89,7 @@ wait
 # sort by size to find best
 #
 
-best="$(ls -S $dir | head -n 1)"
+best="$(ls -Sr $dir | head -n 1)"
 
 if [ -z "$best" ] ; then
     echo "ERROR: no best found" >&2
