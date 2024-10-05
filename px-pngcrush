@@ -34,26 +34,26 @@ output=
 quiet=
 noarguments=
 
-while [ $# -gt 0 ] ; do
-    if [ -z "$noarguments" ] && [ "$1" == "-q" ] ; then
+while [[ $# -gt 0 ]] ; do
+    if [[ -z $noarguments ]] && [[ $1 == "-q" ]] ; then
         quiet=1
-    elif [ -z "$noarguments" ] && [ "$1" == "-h" ] ; then
+    elif [[ -z $noarguments ]] && [[ $1 == "-h" ]] ; then
         usage
         exit 1
-    elif [ -z "$noarguments" ] && [ "$1" == "--" ] ; then
+    elif [[ -z $noarguments ]] && [[ $1 == "--" ]] ; then
         noarguments=1
-    elif [ -z "$noarguments" ] && [ "$1" == "-j" ] ; then
+    elif [[ -z $noarguments ]] && [[ $1 == "-j" ]] ; then
         if [ -z "$2" ] ; then
             usage
             exit 1
         fi
         jobs="$2"
         shift 1
-    elif [ -z "$noarguments" ] && [ "$1" == "-J" ] ; then
+    elif [[ -z $noarguments ]] && [[ $1 == "-J" ]] ; then
         jobs=$(nproc)
-    elif [ -z "$input" ] ; then
+    elif [[ -z $input ]] ; then
         input="$1"
-    elif [ -z "$output" ] ; then
+    elif [[ -z $output ]] ; then
         output="$1"
     else
         usage
@@ -63,12 +63,12 @@ while [ $# -gt 0 ] ; do
     shift 1
 done
 
-if [ -z "$input" ] ; then
+if [[ -z $input ]] ; then
     usage
     exit 1
 fi
 
-if [ -z "$output" ] ; then
+if [[ -z $output ]] ; then
     # infer output from input
     output="${input%.png}-crushed.png"
 fi
@@ -90,17 +90,22 @@ dir="$(mktemp -d)"
 #       not an option
 #
 
-[ -z "$quiet" ] && echo "Parallel pngcrushing $input..." >&2
+[[ -z $quiet ]] && echo "Parallel pngcrushing $input..." >&2
 
 for n in {1..177} ; do
     echo -en "$n\0$input\0$dir/$n.png\0"
-done | xargs -0 -n 3 -P $jobs pngcrush -reduce -nolimits -m 2>/dev/null >/dev/null
+done | xargs -0 -n 3 -P "$jobs" pngcrush -reduce -nolimits -m 2>/dev/null >/dev/null
 
 #
 # sort by size to find best
 #
 
-best="$(ls -Sr $dir | head -n 1)"
+# doing this:
+best="$(find "$dir" -type f -printf "%s %p\n" | sort -n | \
+    head -n 1 | cut -d' ' --complement -f1)"
+# instead of:
+# best="$dir/$(ls -Sr $dir | head -n 1)"
+# because shellcheck doesn't like ls
 
 if [ -z "$best" ] ; then
     echo "ERROR: no best found" >&2
@@ -108,11 +113,11 @@ if [ -z "$best" ] ; then
     exit 1
 fi
 
-[ -z "$quiet" ] && echo "Best: $best" >&2
+[[ -z $quiet ]] && echo "Best: $(basename "$best")" >&2
 
 #
 # move output into place and clean up
 #
 
-mv "$dir/$best" "$output"
+mv "$best" "$output"
 rm -r "$dir"
