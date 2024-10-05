@@ -116,6 +116,5 @@ fi
 # move output into place and clean up
 #
 
-ls "$dir"
 mv "$dir/$best" "$output"
 rm -r "$dir"
