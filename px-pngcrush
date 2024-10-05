@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 function usage () {
-    echo "Syntax: $0 [-h] [-q] [-j JOBS] [--] INPUT [OUTPUT]" >&2
+    echo "Syntax: $0 [-h] [-q] [-j JOBS] [-J] [--] INPUT [OUTPUT]" >&2
 }
 
 #
@@ -49,6 +49,8 @@ while [ $# -gt 0 ] ; do
         fi
         jobs="$2"
         shift 1
+    elif [ -z "$noarguments" ] && [ "$1" == "-J" ] ; then
+        jobs=$(nproc)
     elif [ -z "$input" ] ; then
         input="$1"
     elif [ -z "$output" ] ; then
