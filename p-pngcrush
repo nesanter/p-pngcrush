@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 function usage () {
-    echo "Syntax: $0 [-h] [-q] INPUT [OUTPUT]" >&2
+    echo "Syntax: $0 [-h] [-q] [--] INPUT [OUTPUT]" >&2
 }
 
 #
@@ -31,13 +31,16 @@ function usage () {
 input=
 output=
 quiet=
+noarguments=
 
 while [ $# -gt 0 ] ; do
-    if [ "$1" == "-q" ] ; then
+    if [ -z "$noarguments" ] && [ "$1" == "-q" ] ; then
         quiet=1
-    elif [ "$1" == "-h" ] ; then
+    elif [ -z "$noarguments" ] && [ "$1" == "-h" ] ; then
         usage
         exit 1
+    elif [ -z "$noarguments" ] && [ "$1" == "--" ] ; then
+        noarguments=1
     elif [ -z "$input" ] ; then
         input="$1"
     elif [ -z "$output" ] ; then
