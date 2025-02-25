@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 function usage () {
-    echo "Syntax: $0 [-h] [-q] [--] INPUT [OUTPUT]" >&2
+    echo "Syntax: $0 [-h] [-q] [-i] [--] INPUT [OUTPUT]" >&2
 }
 
 #
@@ -32,10 +32,13 @@ input=
 output=
 quiet=
 noarguments=
+inplace=
 
 while [[ $# -gt 0 ]] ; do
     if [[ -z $noarguments ]] && [[ $1 == "-q" ]] ; then
         quiet=1
+    elif [[ -z $noarguments ]] && [[ $1 == "-i" ]] ; then
+        inplace=1
     elif [[ -z $noarguments ]] && [[ $1 == "-h" ]] ; then
         usage
         exit 1
@@ -58,9 +61,17 @@ if [[ -z $input ]] ; then
     exit 1
 fi
 
+if [[ -n $output ]] && [[ -n $inplace ]] ; then
+    echo "Warning: ignoring -i because OUTPUT was provided" >&2
+fi
+
 if [[ -z $output ]] ; then
     # infer output from input
-    output="${input%.png}-crushed.png"
+    if [[ -z $inplace ]] ; then
+        output="${input%.png}-crushed.png"
+    else
+        output="$input"
+    fi
 fi
 
 #
