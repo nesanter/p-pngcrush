@@ -27,6 +27,12 @@ function usage () {
 #
 # parse arguments
 #
+#  -h: display usage message
+#  -i: default output name is INPUT.png instead of INPUT-crushed.png
+#  -q: be quiet
+#  -f: do not refuse to overwrite OUTPUT even if it is newer than INPUT
+#      (the default if OUTPUT is not generated from INPUT)
+#
 
 input=
 output=
