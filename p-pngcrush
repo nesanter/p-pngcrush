@@ -115,6 +115,11 @@ done
 wait
 
 #
+# check for empty outputs
+#
+find "$dir" -type f -size 0 -delete
+
+#
 # sort by size to find best
 #
 
