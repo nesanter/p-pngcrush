@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2024 Noah Santer <n.ed.santer@gmail.com>
+# Copyright (c) 2025 Noah Santer <n.ed.santer@gmail.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the “Software”), to deal
@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 function usage () {
-    echo "Syntax: $0 [-h] [-q] [-i] [--] INPUT [OUTPUT]" >&2
+    echo "Syntax: $0 [-h] [-q] [-i] [-f] [--] INPUT [OUTPUT]" >&2
 }
 
 #
@@ -33,12 +33,15 @@ output=
 quiet=
 noarguments=
 inplace=
+force=
 
 while [[ $# -gt 0 ]] ; do
     if [[ -z $noarguments ]] && [[ $1 == "-q" ]] ; then
         quiet=1
     elif [[ -z $noarguments ]] && [[ $1 == "-i" ]] ; then
         inplace=1
+    elif [[ -z $noarguments ]] && [[ $1 == "-f" ]] ; then
+        force=1
     elif [[ -z $noarguments ]] && [[ $1 == "-h" ]] ; then
         usage
         exit 1
@@ -72,7 +75,13 @@ if [[ -z $output ]] ; then
     else
         output="$input"
     fi
+
+    if [[ -z $force ]] && [[ $output -nt $input ]] ; then
+        echo "Refusing to overwrite \"$output\" without -f (newer than \"$input\")" >&2
+        exit 1
+    fi
 fi
+
 
 #
 # make a directory to store the outputs
